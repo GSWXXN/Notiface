@@ -1,0 +1,2 @@
+rootProject.name = "人脸不解锁"
+include ':app'
