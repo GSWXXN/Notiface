@@ -4,6 +4,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.util.ArrayList
 
 class SystemUIHookEntry(lpparam: XC_LoadPackage.LoadPackageParam) {
     private val mKeyguardUpdateMonitor by lazy {
@@ -23,6 +24,9 @@ class SystemUIHookEntry(lpparam: XC_LoadPackage.LoadPackageParam) {
     }
     private val mMiuiFaceUnlockManager by lazy {
         XposedHelpers.findClass("com.android.keyguard.faceunlock.MiuiFaceUnlockManager", lpparam.classLoader)
+    }
+    private val mHapticFeedBackImpl by lazy {
+        XposedHelpers.findClass("com.miui.systemui.util.HapticFeedBackImpl", lpparam.classLoader)
     }
     private val mKeyguardUpdateMonitorInjector by lazy {
         XposedHelpers.findClass("com.android.keyguard.injector.KeyguardUpdateMonitorInjector", lpparam.classLoader)
@@ -60,8 +64,16 @@ class SystemUIHookEntry(lpparam: XC_LoadPackage.LoadPackageParam) {
                     XposedHelpers.callStaticMethod(mDependency, "get", mNotificationViewHierarchyManager)
                         .let { XposedHelpers.callMethod(it, "updateNotificationViews") }
 
+                    XposedHelpers.callStaticMethod(mDependency, "get", mHapticFeedBackImpl)
+                        .let { XposedHelpers.callMethod(it, "getHapticFeedbackUtil") }
+                        .let { XposedHelpers.callMethod(it, "performHapticFeedback", "mesh_light", false) }
+
                     XposedHelpers.callStaticMethod(mDependency, "get", mMiuiFaceUnlockManager)
-                        .let { XposedHelpers.callMethod(it, "updateFaceUnlockView") }
+                        .let { XposedHelpers.getObjectField(it, "mFaceViewList") as ArrayList<*>}
+                        .forEach {mFaceViewList ->
+                            XposedHelpers.callMethod(mFaceViewList, "get")
+                                ?.let { XposedHelpers.callMethod(it, "startFaceUnlockSuccessAnimation") }
+                        }
 
                     flag = false
                     return null
