@@ -11,8 +11,8 @@ android {
         applicationId "com.gswxxn.notiface"
         minSdkVersion 31
         targetSdkVersion 33
-        versionCode 100
-        versionName "1.0"
+        versionCode 110
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
